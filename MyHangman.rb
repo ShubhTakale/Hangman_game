@@ -1,6 +1,7 @@
 require 'net/http'
 class Hangman
     attr_accessor :chosen_word,:wordLength,:players_word,:used_letters,:chances,:temp_word
+
     def initialize(chances=8)
         @chosen_word = choose_word.upcase
         @wordLength = @chosen_word.length
@@ -11,27 +12,38 @@ class Hangman
         for i in 0...@wordLength
             @players_word = @players_word + "_ "
         end
-        #puts @chosen_word
     end
 
+    # method to start the game
+    def start_game
+      while !game_over?
+          play_game
+      end
+        
+      puts "Game Over"
+      puts "The word was: #{@chosen_word}"
+      if @chances > 0
+          puts "You Won the game !!"
+      else
+          puts "Sorry, You lost the game"
+      end
+    end
 
     private
-    #method to choose a work from array of words
+    #method to choose a word from array of words
     def choose_word
         uri = URI('https://random-word-api.herokuapp.com/word?number=5')
-        words =Net::HTTP.get(uri)  
-        words= words.delete("[").delete("]").delete("\"")
-        words= words.split(",")
+        words = Net::HTTP.get(uri)  
+        words = words.delete("[").delete("]").delete("\"")
+        words = words.split(",")
         index = rand(words.count - 1)
         return words[index]
     end
 
-    def is_game_over
-        #puts "inside is_game_over"
-        @temp_word= @players_word
-        @temp_word=@temp_word.delete(" ")
-
-        @chances == 0 || @temp_word.eql?(@chosen_word) 
+    def game_over?
+        @temp_word = @players_word
+        @temp_word = @temp_word.delete(" ")
+        return @chances == 0 || @temp_word.eql?(@chosen_word) 
     end
 
     def play_game
@@ -58,27 +70,10 @@ class Hangman
           end
         else 
           @chances -= 1
-          @used_letters+= letter.upcase.to_s + ","
+          @used_letters += letter.upcase.to_s + ","
         end
         puts "The incorrect letters entered are :#{@used_letters}"
       end
-
-    # method to start the game
-    public 
-    def start_game
-        #puts "inside start_game"
-        while !is_game_over
-            play_game
-        end
-          
-        puts "Game Over"
-        puts "The word was: #{@chosen_word}"
-        if @chances > 0
-            puts "You Won the game !!"
-        else
-            puts "Sorry, You lost the game"
-        end
-    end
 end
 
 Hangman.new.start_game
